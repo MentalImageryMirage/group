@@ -77,6 +77,13 @@ def equiped_chatgpt(update, context, mes):
 
 def status_check(update: Update, context: CallbackContext)-> None:
     update.message.reply_text('status check')
+    # try:
+    #     msg = 'testMsg'
+    #     reply = redis1.get(msg).decode('UTF-8')
+    #     print(reply)
+    #     update.message.reply_text(reply)
+    # except (IndexError, ValueError):
+    #     update.message.reply_text('Sorry, error in redis connection.')
 
 def add(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /add is issued."""
