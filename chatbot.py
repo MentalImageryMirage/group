@@ -36,6 +36,7 @@ def main():
     # dispatcher.add_handler(CommandHandler("help", help_command))
     # dispatcher.add_handler(CommandHandler("hello", hello_command))
     dispatcher.add_handler(CommandHandler("test", status_check))
+    dispatcher.add_handler(CommandHandler("query", query))
     dispatcher.add_handler(CommandHandler("GptON", openGpt))
     dispatcher.add_handler(CommandHandler("GptOFF", closeGpt))
     
@@ -60,6 +61,14 @@ def closeGpt(update, context):
 #     logging.info("context: " + str(context))
 #     context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
 
+def qurey(update: Update, context: CallbackContext) -> None:
+    msgQ = context.args[0].lower()
+    try:
+        reply = redis1.get(msgQ).decode('UTF-8')
+        print(reply)
+        update.message.reply_text(reply)
+    except (IndexError, ValueError):
+        update.message.reply_text('Sorry, error in redis connection.')
 
 def equiped_chatgpt(update, context, mes): 
     global chatgpt
