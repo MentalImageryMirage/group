@@ -5,7 +5,7 @@ import configparser
 import logging
 import redis
 from ChatGPT_HKBU import HKBU_ChatGPT
-
+# import re
 
 global redis1
 def main():
@@ -97,6 +97,30 @@ def add(update: Update, context: CallbackContext) -> None:
 def keywords(update: Update, context: CallbackContext):
     update.message.reply_text('You just say the keywords!')
     print(update.message.text)
+    msg = update.message.text.lower()
+    resultJs = msg.find(' javascript ')
+    resultJ = msg.find(' java ')
+    resultPy = msg.find(' python ')
+    resultC = msg.find(' C ')
+    resultCPP = msg.find(' C++ ')
+    resultCS = msg.find(' C# ')
+    resultCSS = msg.find(' CSS ')
+    resultHTML = msg.find(' html ')
+
+    keys = ['javascript','java','python','C','C++','C#','CSS','html']
+    values = [resultJs,resultJ,resultPy,resultC,resultCPP,resultCS,resultCSS,resultHTML]
+
+    results = dict(zip(keys,values))
+
+    for key ,value in results.items():
+        if (value > -1):
+            print(key)
+            try:
+                redis1.incr(msg)
+                print('You have said ' + msg +  ' for ' + redis1.get(msg).decode('UTF-8') + ' times.')
+            except (IndexError, ValueError):
+                update.message.reply_text('Sorry, error in redis connection.')
+
     if GPTFlag:
         equiped_chatgpt(update,context,)
 
