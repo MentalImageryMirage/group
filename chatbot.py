@@ -61,10 +61,14 @@ def closeGpt(update, context):
 #     logging.info("context: " + str(context))
 #     context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
 
-def qurey(update: Update, context: CallbackContext) -> None:
-    msgQ = context.args[0].lower()
+def query(update: Update, context: CallbackContext) -> None:
+    # msgQ = context.args[0].lower()
+    msgQ = context.args[0]
+    print(msgQ)
     try:
-        reply = redis1.get(msgQ).decode('UTF-8')
+        # reply = redis1.get('testJson').decode('UTF-8')
+        reply = redis1.json().get(msgQ, "$")
+        reply = reply[0]['value']
         print(reply)
         update.message.reply_text(reply)
     except (IndexError, ValueError):
