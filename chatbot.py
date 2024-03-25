@@ -189,17 +189,26 @@ def keywords(update: Update, context: CallbackContext):
 
 def showStatistic(update: Update, context: CallbackContext)-> None:
     dic = {'javascript':0,'java':0,'python':0,'c':0,'c++':0,'c#':0,'css':0,'html':0}
+    max = -1
+    maxName = 'none'
     for key ,value in dic.items():
         # if (value > -1):
         #     print(key)
         try:
             value = redis1.get(key).decode('UTF-8')
+            if(value > max ):
+                max = value
+                maxName = key
                 # redis1.incr(key)
                 # update.message.reply_text()
             update.message.reply_text('You have said ' + key +  ' for ' + value + ' times.')
             # print()
         except (IndexError, ValueError):
             update.message.reply_text('Sorry, error in redis connection.')
+    if(max != -1):
+        update.message.reply_text('It seems like maybe ' + key +  ' is your favourite language.')
+    else:
+        update.message.reply_text('It seems like maybe you dont have favourite language.')
     return
 
 if __name__ == '__main__':
