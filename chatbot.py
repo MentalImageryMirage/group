@@ -32,19 +32,23 @@ def main():
     dispatcher.add_handler(message_handler)
 
     # on different commands - answer in Telegram
-    dispatcher.add_handler(CommandHandler("add", add))
+    # dispatcher.add_handler(CommandHandler("add", add))
     # dispatcher.add_handler(CommandHandler("help", help_command))
     # dispatcher.add_handler(CommandHandler("hello", hello_command))
+    dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("test", status_check))
     dispatcher.add_handler(CommandHandler("query", query))
     dispatcher.add_handler(CommandHandler("GptON", openGpt))
     dispatcher.add_handler(CommandHandler("GptOFF", closeGpt))
+    dispatcher.add_handler(CommandHandler("statistic", showStatistic))
     
     # To start the bot:
     updater.start_polling()
     updater.idle()
 
 GPTFlag = False
+def start(update, context):
+    update.message.reply_text("Welcome.I'm your coding assistant.\nThere are a number of commands you can use to access my features to assist you in writing code. Also I count keywords in the chat logs about computer programming languages.\nTry commands:\n/query\n/GptON\n/GptOFF\n/statistic")
 
 def openGpt(update, context):
     GPTFlag = True
@@ -150,35 +154,53 @@ def add(update: Update, context: CallbackContext) -> None:
 #     update.message.reply_text('Good day, \n'+ msg +'!')
 
 def keywords(update: Update, context: CallbackContext):
-    update.message.reply_text('You just say the keywords!')
     print(update.message.text)
     msg = update.message.text.lower()
-    resultJs = msg.find(' javascript ')
-    resultJ = msg.find(' java ')
-    resultPy = msg.find(' python ')
-    resultC = msg.find(' C ')
-    resultCPP = msg.find(' C++ ')
-    resultCS = msg.find(' C# ')
-    resultCSS = msg.find(' CSS ')
-    resultHTML = msg.find(' html ')
+    resultJs = msg.find('javascript')
+    resultJ = msg.find('java')
+    resultPy = msg.find('python')
+    resultC = msg.find('c ')
+    resultCPP = msg.find('c++')
+    resultCS = msg.find('c#')
+    resultCSS = msg.find('css')
+    resultHTML = msg.find('html')
 
-    keys = ['javascript','java','python','C','C++','C#','CSS','html']
+    if(resultJ == resultJs):
+        resultJ = -1
+
+    keys = ['javascript','java','python','c','c++','c#','css','html']
     values = [resultJs,resultJ,resultPy,resultC,resultCPP,resultCS,resultCSS,resultHTML]
 
     results = dict(zip(keys,values))
 
     for key ,value in results.items():
         if (value > -1):
+            update.message.reply_text('You just said the keywords'+key+'!')
             print(key)
             try:
-                redis1.incr(msg)
-                print('You have said ' + msg +  ' for ' + redis1.get(msg).decode('UTF-8') + ' times.')
+                redis1.incr(key)
+                # update.message.reply_text()
+                print('You have said ' + key +  ' for ' + redis1.get(key).decode('UTF-8') + ' times.')
             except (IndexError, ValueError):
                 update.message.reply_text('Sorry, error in redis connection.')
 
     if GPTFlag:
         equiped_chatgpt(update,context,)
 
+def showStatistic(update: Update, context: CallbackContext)-> None:
+    dic = {'javascript':0,'java':0,'python':0,'c':0,'c++':0,'c#':0,'css':0,'html':0}
+    for key ,value in dic.items():
+        # if (value > -1):
+        #     print(key)
+        try:
+            value = redis1.get(key).decode('UTF-8')
+                # redis1.incr(key)
+                # update.message.reply_text()
+            update.message.reply_text('You have said ' + key +  ' for ' + value + ' times.')
+            # print()
+        except (IndexError, ValueError):
+            update.message.reply_text('Sorry, error in redis connection.')
+    return
 
 if __name__ == '__main__':
     main()
