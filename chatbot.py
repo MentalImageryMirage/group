@@ -62,20 +62,52 @@ def closeGpt(update, context):
 #     context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
 
 def query(update: Update, context: CallbackContext) -> None:
-    mesString = ''
-    for msg in context.args:
-        mesString += msg.lower()
-    # msgQ = context.args[0].lower().replace(" ","")
-    msgQ = mesString
-    print(msgQ)
-    try:
-        # reply = redis1.get('testJson').decode('UTF-8')
-        reply = redis1.json().get(msgQ, "$")
-        reply = reply[0]['PythonImplementation']
-        # print(reply)
-        update.message.reply_text(reply)
-    except (IndexError, ValueError):
-        update.message.reply_text('Sorry, error in redis connection.')
+    mesString = context.args[0].lower()+context.args[1].lower()
+    
+    if(len(context.args)>=3):
+        # Implementation = "$.." + context.args[2].lower() + "Implementation"
+        list = []
+        for index, msg in enumerate(context.args):
+        # msgQ = context.args[0].lower().replace(" ","")
+            if(msg.lower() == 'description'):
+                list.append("$.." + 'Description')
+                continue
+            if(msg.lower() == 'time' or msg.lower() == 'complexity'):
+                list.append("$.." + 'TimeComplexity')
+                continue
+            if(msg.lower() == 'application'or msg.lower() == 'scenarios'):
+                list.append("$.." + 'ApplicationScenarios')
+                continue
+            else:
+                if(index>1):
+                    list.append("$.." + msg.lower() + "Implementation")
+        # msgQ = mesString
+        print(mesString)
+        print(list)
+        for q in list:
+            try:
+                # reply = redis1.get('testJson').decode('UTF-8')
+                reply = redis1.json().get(mesString, q)
+                reply = reply[0]
+                print(reply)
+                update.message.reply_text(reply)
+            except (IndexError, ValueError):
+                update.message.reply_text('Sorry, error in redis connection.')
+    else:
+        # for msg in context.args:
+        #     mesString += msg.lower()
+        # msgQ = context.args[0].lower().replace(" ","")
+        # msgQ = mesString
+        # print(msgQ)
+        try:
+            # reply = redis1.get('testJson').decode('UTF-8')
+            reply = redis1.json().get(mesString, "$")
+            reply = reply[0]['Description']
+            # print(reply)
+            update.message.reply_text(reply)
+        except (IndexError, ValueError):
+            update.message.reply_text('Sorry, error in redis connection.')
+    
 
 def equiped_chatgpt(update, context, mes): 
     global chatgpt
