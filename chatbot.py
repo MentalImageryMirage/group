@@ -8,8 +8,11 @@ from ChatGPT_HKBU import HKBU_ChatGPT
 # import re
 
 global redis1
+global GPTFlag
 def main():
     # Load your token and create an Updater for your Bot
+    global GPTFlag
+    GPTFlag = False
     config = configparser.ConfigParser()
     config.read('config.ini')
     updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
@@ -46,11 +49,11 @@ def main():
     updater.start_polling()
     updater.idle()
 
-GPTFlag = False
 def start(update, context):
     update.message.reply_text("Welcome.I'm your coding assistant.\nThere are a number of commands you can use to access my features to assist you in writing code. Also I count keywords in the chat logs about computer programming languages.\nTry commands:\n/query\n/GptON\n/GptOFF\n/statistic")
 
 def openGpt(update, context):
+    global GPTFlag
     GPTFlag = True
     update.message.reply_text("GPT ON, please wait.")
     equiped_chatgpt(update,context,'if you receive this message, please answer me "Hello, Im the GPT assistant. Im ready to help you coding."')
@@ -58,6 +61,7 @@ def openGpt(update, context):
 
 def closeGpt(update, context):
     update.message.reply_text("GPT off.")
+    global GPTFlag
     GPTFlag = False
     return
 
@@ -121,6 +125,7 @@ def query(update: Update, context: CallbackContext) -> None:
 
 def equiped_chatgpt(update, context, mes): 
     global chatgpt
+    print('SUBMIT: '+ mes)
     reply_message = chatgpt.submit(mes)
     logging.info("GPTUpdate: " + str(update))
     logging.info("context: " + str(context))
@@ -161,6 +166,9 @@ def add(update: Update, context: CallbackContext) -> None:
 
 def keywords(update: Update, context: CallbackContext):
     print(update.message.text)
+    global GPTFlag
+    if GPTFlag:
+        equiped_chatgpt(update,context,update.message.text)
     msg = update.message.text.lower()
     resultJs = msg.find('javascript')
     resultJ = msg.find('java')
@@ -181,17 +189,16 @@ def keywords(update: Update, context: CallbackContext):
 
     for key ,value in results.items():
         if (value > -1):
-            update.message.reply_text('You just said the keywords'+key+'!')
+            update.message.reply_text('You just said the keywords '+key+' !')
             print(key)
             try:
                 redis1.incr(key)
                 # update.message.reply_text()
-                print('You have said ' + key +  ' for ' + redis1.get(key).decode('UTF-8') + ' times.')
+                # print('You have said ' + key +  ' for ' + redis1.get(key).decode('UTF-8') + ' times.')
             except (IndexError, ValueError):
                 update.message.reply_text('Sorry, error in redis connection.')
 
-    if GPTFlag:
-        equiped_chatgpt(update,context,)
+    
 
 def showStatistic(update: Update, context: CallbackContext)-> None:
     dic = {'javascript':0,'java':0,'python':0,'c':0,'c++':0,'c#':0,'css':0,'html':0}
@@ -202,7 +209,8 @@ def showStatistic(update: Update, context: CallbackContext)-> None:
         #     print(key)
         try:
             value = redis1.get(key).decode('UTF-8')
-            if(value > max ):
+            print(value)
+            if(int(value) > int(max) ):
                 max = value
                 maxName = key
                 # redis1.incr(key)
@@ -212,7 +220,7 @@ def showStatistic(update: Update, context: CallbackContext)-> None:
         except (IndexError, ValueError):
             update.message.reply_text('Sorry, error in redis connection.')
     if(max != -1):
-        update.message.reply_text('It seems like maybe ' + key +  ' is your favourite language.')
+        update.message.reply_text('It seems like maybe ' + maxName +  ' is your favourite language.')
     else:
         update.message.reply_text('It seems like maybe you dont have favourite language.')
     return
