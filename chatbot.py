@@ -52,10 +52,12 @@ def start(update, context):
 
 def openGpt(update, context):
     GPTFlag = True
+    update.message.reply_text("GPT ON, please wait.")
     equiped_chatgpt(update,context,'if you receive this message, please answer me "Hello, Im the GPT assistant. Im ready to help you coding."')
     return
 
 def closeGpt(update, context):
+    update.message.reply_text("GPT off.")
     GPTFlag = False
     return
 
@@ -66,51 +68,55 @@ def closeGpt(update, context):
 #     context.bot.send_message(chat_id=update.effective_chat.id, text= reply_message)
 
 def query(update: Update, context: CallbackContext) -> None:
-    mesString = context.args[0].lower()+context.args[1].lower()
-    
-    if(len(context.args)>=3):
-        # Implementation = "$.." + context.args[2].lower() + "Implementation"
-        list = []
-        for index, msg in enumerate(context.args):
-        # msgQ = context.args[0].lower().replace(" ","")
-            if(msg.lower() == 'description'):
-                list.append("$.." + 'Description')
-                continue
-            if(msg.lower() == 'time' or msg.lower() == 'complexity'):
-                list.append("$.." + 'TimeComplexity')
-                continue
-            if(msg.lower() == 'application'or msg.lower() == 'scenarios'):
-                list.append("$.." + 'ApplicationScenarios')
-                continue
-            else:
-                if(index>1):
-                    list.append("$.." + msg.lower() + "Implementation")
-        # msgQ = mesString
-        print(mesString)
-        print(list)
-        for q in list:
+    if(len(context.args)==0):
+        replyMsg = "This function allows you to query some common algorithms, such as bubble sort, sequential lookup, and so on. You can query the algorithm's description, time complexity, application scenarios, and implementation in some common languages with different parameters.\nTry: \n/query bubble sort \n/query bubble sort description \n/query bubble sort time \n/query bubble sort python"
+        update.message.reply_text(replyMsg)
+    else:
+        mesString = context.args[0].lower()+context.args[1].lower()
+        
+        if(len(context.args)>=3):
+            # Implementation = "$.." + context.args[2].lower() + "Implementation"
+            list = []
+            for index, msg in enumerate(context.args):
+            # msgQ = context.args[0].lower().replace(" ","")
+                if(msg.lower() == 'description'):
+                    list.append("$.." + 'Description')
+                    continue
+                if(msg.lower() == 'time' or msg.lower() == 'complexity'):
+                    list.append("$.." + 'TimeComplexity')
+                    continue
+                if(msg.lower() == 'application'or msg.lower() == 'scenarios'):
+                    list.append("$.." + 'ApplicationScenarios')
+                    continue
+                else:
+                    if(index>1):
+                        list.append("$.." + msg.lower() + "Implementation")
+            # msgQ = mesString
+            print(mesString)
+            print(list)
+            for q in list:
+                try:
+                    # reply = redis1.get('testJson').decode('UTF-8')
+                    reply = redis1.json().get(mesString, q)
+                    reply = reply[0]
+                    print(reply)
+                    update.message.reply_text(reply)
+                except (IndexError, ValueError):
+                    update.message.reply_text('Sorry, this record is not currently in the database. Maybe you could try /GptON')
+        else:
+            # for msg in context.args:
+            #     mesString += msg.lower()
+            # msgQ = context.args[0].lower().replace(" ","")
+            # msgQ = mesString
+            # print(msgQ)
             try:
                 # reply = redis1.get('testJson').decode('UTF-8')
-                reply = redis1.json().get(mesString, q)
-                reply = reply[0]
-                print(reply)
+                reply = redis1.json().get(mesString, "$")
+                reply = reply[0]['Description']
+                # print(reply)
                 update.message.reply_text(reply)
             except (IndexError, ValueError):
-                update.message.reply_text('Sorry, error in redis connection.')
-    else:
-        # for msg in context.args:
-        #     mesString += msg.lower()
-        # msgQ = context.args[0].lower().replace(" ","")
-        # msgQ = mesString
-        # print(msgQ)
-        try:
-            # reply = redis1.get('testJson').decode('UTF-8')
-            reply = redis1.json().get(mesString, "$")
-            reply = reply[0]['Description']
-            # print(reply)
-            update.message.reply_text(reply)
-        except (IndexError, ValueError):
-            update.message.reply_text('Sorry, error in redis connection.')
+                update.message.reply_text('Sorry, this record is not currently in the database. Maybe you could try /GptON')
     
 
 def equiped_chatgpt(update, context, mes): 
