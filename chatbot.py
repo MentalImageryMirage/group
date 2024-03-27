@@ -3,11 +3,13 @@ from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters,
                           CallbackContext)
 import configparser
 import logging
-import redis
+# import redis
+from mongoDB import mongoDBconnect
 from ChatGPT_HKBU import HKBU_ChatGPT
 # import re
 
-global redis1
+# global redis1
+global mongoDB
 global GPTFlag
 def main():
     # Load your token and create an Updater for your Bot
@@ -17,9 +19,10 @@ def main():
     config.read('config.ini')
     updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
     dispatcher = updater.dispatcher
-    global redis1
-    redis1 = redis.Redis(host=(config['REDIS']['HOST']), password=(config['REDIS']['PASSWORD']), port=(config['REDIS']['REDISPORT']))
-   
+    # global redis1
+    # redis1 = redis.Redis(host=(config['REDIS']['HOST']), password=(config['REDIS']['PASSWORD']), port=(config['REDIS']['REDISPORT']))
+    global mongoDB
+    mongoDB = mongoDBconnect()
     # You can set this logging module, so you will know when and why things do not work as expected Meanwhile, update your config.ini as:
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
     
@@ -84,25 +87,26 @@ def query(update: Update, context: CallbackContext) -> None:
             for index, msg in enumerate(context.args):
             # msgQ = context.args[0].lower().replace(" ","")
                 if(msg.lower() == 'description'):
-                    list.append("$.." + 'Description')
+                    list.append('Description')
                     continue
                 if(msg.lower() == 'time' or msg.lower() == 'complexity'):
-                    list.append("$.." + 'TimeComplexity')
+                    list.append('TimeComplexity')
                     continue
                 if(msg.lower() == 'application'or msg.lower() == 'scenarios'):
-                    list.append("$.." + 'ApplicationScenarios')
+                    list.append('ApplicationScenarios')
                     continue
                 else:
                     if(index>1):
-                        list.append("$.." + msg.lower() + "Implementation")
+                        list.append(msg.lower() + "Implementation")
             # msgQ = mesString
             print(mesString)
             print(list)
             for q in list:
                 try:
                     # reply = redis1.get('testJson').decode('UTF-8')
-                    reply = redis1.json().get(mesString, q)
-                    reply = reply[0]
+                    # reply = redis1.json().get(mesString, q)
+                    reply = mongoDB.readAlgorithm(mesString, q)
+                    # reply = reply[0]
                     print(reply)
                     update.message.reply_text(reply)
                 except (IndexError, ValueError):
@@ -115,8 +119,9 @@ def query(update: Update, context: CallbackContext) -> None:
             # print(msgQ)
             try:
                 # reply = redis1.get('testJson').decode('UTF-8')
-                reply = redis1.json().get(mesString, "$")
-                reply = reply[0]['Description']
+                # reply = redis1.json().get(mesString, "$")
+                reply = mongoDB.readAlgorithm(mesString, 'Description')
+                # reply = reply[0]['Description']
                 # print(reply)
                 update.message.reply_text(reply)
             except (IndexError, ValueError):
@@ -148,16 +153,16 @@ def status_check(update: Update, context: CallbackContext)-> None:
     # except (IndexError, ValueError):
     #     update.message.reply_text('Sorry, error in redis connection.')
 
-def add(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /add is issued."""
-    try:
-        global redis1
-        logging.info(context.args[0])
-        msg = context.args[0]   # /add keyword <-- this should store the keyword
-        redis1.incr(msg)
-        update.message.reply_text('You have said ' + msg +  ' for ' + redis1.get(msg).decode('UTF-8') + ' times.')
-    except (IndexError, ValueError):
-        update.message.reply_text('Usage: /add <keyword>')
+# def add(update: Update, context: CallbackContext) -> None:
+#     """Send a message when the command /add is issued."""
+#     try:
+#         global redis1
+#         logging.info(context.args[0])
+#         msg = context.args[0]   # /add keyword <-- this should store the keyword
+#         redis1.incr(msg)
+#         update.message.reply_text('You have said ' + msg +  ' for ' + redis1.get(msg).decode('UTF-8') + ' times.')
+#     except (IndexError, ValueError):
+#         update.message.reply_text('Usage: /add <keyword>')
 
 # def hello_command(update: Update, context: CallbackContext) -> None:
 #     """Send a message when the command /hello is issued."""
@@ -192,7 +197,8 @@ def keywords(update: Update, context: CallbackContext):
             update.message.reply_text('You just said the keywords '+key+' !')
             print(key)
             try:
-                redis1.incr(key)
+                mongoDB.increaseLog(key)
+                # redis1.incr(key)
                 # update.message.reply_text()
                 # print('You have said ' + key +  ' for ' + redis1.get(key).decode('UTF-8') + ' times.')
             except (IndexError, ValueError):
@@ -201,29 +207,51 @@ def keywords(update: Update, context: CallbackContext):
     
 
 def showStatistic(update: Update, context: CallbackContext)-> None:
-    dic = {'javascript':0,'java':0,'python':0,'c':0,'c++':0,'c#':0,'css':0,'html':0}
-    max = -1
-    maxName = 'none'
-    for key ,value in dic.items():
-        # if (value > -1):
-        #     print(key)
-        try:
-            value = redis1.get(key).decode('UTF-8')
-            print(value)
-            if(int(value) > int(max) ):
-                max = value
-                maxName = key
-                # redis1.incr(key)
-                # update.message.reply_text()
-            update.message.reply_text('You have said ' + key +  ' for ' + value + ' times.')
-            # print()
-        except (IndexError, ValueError):
-            update.message.reply_text('Sorry, error in redis connection.')
-    if(max != -1):
-        update.message.reply_text('It seems like maybe ' + maxName +  ' is your favourite language.')
+    if(len(context.args)==0):
+        replyMsg = "This function allows you to query the number of times keywords in each programming language have been mentioned in past chats.\nTry:\n/statistic all\n/statistic python\n/statistic javascript"
+        update.message.reply_text(replyMsg)
     else:
-        update.message.reply_text('It seems like maybe you dont have favourite language.')
-    return
+        if(context.args[0].lower() == 'all'):
+            dic = {'javascript':0,'java':0,'python':0,'c':0,'c++':0,'c#':0,'css':0,'html':0}
+            max = -1
+            maxName = 'none'
+            replyMsg = 'You have said: \n'
+            for key ,value in dic.items():
+                # if (value > -1):
+                #     print(key)
+                try:
+                    # value = redis1.get(key).decode('UTF-8')
+                    value = mongoDB.queryLog(key)
+                    print(value)
+                    if(int(value) > int(max) ):
+                        max = value
+                        maxName = key
+                        # redis1.incr(key)
+                        # update.message.reply_text()
+                    replyMsg +=  key +  ' for ' + str(value) + ' times;\n'
+                    # print()
+                except (IndexError, ValueError):
+                    update.message.reply_text('Sorry, error in redis connection.')
+            if(max != -1):
+                replyMsg += 'It seems like maybe ' + maxName.upper() +  ' is your favourite language.'
+            else:
+                replyMsg += 'It seems like maybe you dont have favourite language.'
+        else:
+            replyMsg = 'You have said '
+            for key in context.args:
+                # if (value > -1):
+                #     print(key)
+                try:
+                    # value = redis1.get(key).decode('UTF-8')
+                    value = mongoDB.queryLog(key)
+                        # redis1.incr(key)
+                        # update.message.reply_text()
+                    replyMsg +=  key +  ' for ' + str(value) + ' times.\n'
+                    # print()
+                except (IndexError, ValueError):
+                    update.message.reply_text('Sorry, error in redis connection.')
+        update.message.reply_text(replyMsg)
+        # return
 
 if __name__ == '__main__':
     main()
