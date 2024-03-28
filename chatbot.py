@@ -76,7 +76,7 @@ def closeGpt(update, context):
 
 def query(update: Update, context: CallbackContext) -> None:
     if(len(context.args)==0):
-        replyMsg = "This function allows you to query some common algorithms, such as bubble sort, sequential lookup, and so on. You can query the algorithm's description, time complexity, application scenarios, and implementation in some common languages with different parameters.\nTry: \n/query bubble sort \n/query bubble sort description \n/query bubble sort time \n/query bubble sort python"
+        replyMsg = "This function allows you to query some common algorithms, such as bubble sort, sequential search, and so on. You can query the algorithm's description, time complexity, application scenarios, and implementation in some common languages with different parameters.\nTry: \n/query bubble sort \n/query bubble sort description \n/query bubble sort time \n/query bubble sort python"
         update.message.reply_text(replyMsg)
     else:
         mesString = context.args[0].lower()+context.args[1].lower()

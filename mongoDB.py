@@ -1,15 +1,5 @@
 # mongodb://m-i-mirage:nKTwCt4R8u5dG4AIhCwN2IPxJ8WdiZ1cQJVUeJgaVzEenYApPZzrRrciWSaXwTkqCjancvIl01yeACDbLnA6yA%3D%3D@m-i-mirage.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&maxIdleTimeMS=120000&appName=@m-i-mirage@
 import pymongo
-# myclient = pymongo.MongoClient('mongodb://m-i-mirage:nKTwCt4R8u5dG4AIhCwN2IPxJ8WdiZ1cQJVUeJgaVzEenYApPZzrRrciWSaXwTkqCjancvIl01yeACDbLnA6yA%3D%3D@m-i-mirage.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&maxIdleTimeMS=120000&appName=@m-i-mirage@')
-# db = mongo_client.admin
-# db.authenticate('用户名', '密码')
-# db = myclient['sleepTimeDB'].chatbotData
-# print(db.chatbotData)
-# db.insert_one({'id':'test','msg':'testMessage'})
-# tests = db.find({"name":"algorithm"})
-# result = [result['bubblesort']['TimeComplexity'] for result in tests][0]
-# print(result)
-
 class mongoDBconnect():
     def __init__(self) -> None:
         myclient = pymongo.MongoClient('mongodb://m-i-mirage:nKTwCt4R8u5dG4AIhCwN2IPxJ8WdiZ1cQJVUeJgaVzEenYApPZzrRrciWSaXwTkqCjancvIl01yeACDbLnA6yA%3D%3D@m-i-mirage.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&maxIdleTimeMS=120000&appName=@m-i-mirage@')
@@ -54,11 +44,11 @@ class mongoDBconnect():
         
 # if __name__ == '__main__':
 #     mongoTest = mongoDBconnect()
-    # result = mongoTest.readAlgorithm('binarysearch',"pythonImplementation")
-    # result = mongoTest.queryLog('javascript')
-    # result = mongoTest.increaseLog('javascript')
-    # result = mongoTest.queryLog('javascript')
-    # print(result)
+#     result = mongoTest.readAlgorithm('binarysearch',"pythonImplementation")
+#     # result = mongoTest.queryLog('javascript')
+#     # result = mongoTest.increaseLog('javascript')
+#     # result = mongoTest.queryLog('javascript')
+#     print(result)
 
 
     
