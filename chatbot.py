@@ -251,7 +251,7 @@ def showStatistic(update: Update, context: CallbackContext)-> None:
                     update.message.reply_text('Sorry, error in mongoDB connection.')
                     # print(IndexError)
                     # print(ValueError)
-            if(max != -1):
+            if(max != -1 and max != 0):
                 replyMsg += 'It seems like maybe ' + maxName.upper() +  ' is your favourite language.'
             else:
                 replyMsg += 'It seems like maybe you dont have favourite language.'
