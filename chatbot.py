@@ -145,6 +145,13 @@ def equiped_chatgpt(update, context, mes):
 
 def status_check(update: Update, context: CallbackContext)-> None:
     update.message.reply_text('status check')
+    msg = str(update)
+    start = msg.find("'id': ") 
+    end = msg.find(',', start)
+    id = msg[start + 6:end]
+    print(start)
+    print(end)
+    print(id)
     # try:
     #     msg = 'testMsg'
     #     reply = redis1.get(msg).decode('UTF-8')
@@ -189,24 +196,34 @@ def keywords(update: Update, context: CallbackContext):
 
     keys = ['javascript','java','python','c','c++','c#','css','html']
     values = [resultJs,resultJ,resultPy,resultC,resultCPP,resultCS,resultCSS,resultHTML]
-
     results = dict(zip(keys,values))
+
+    msg = str(update)
+    start = msg.find("'id': ") 
+    end = msg.find(',', start)
+    id = msg[start + 6:end].strip()
+    print(id)
 
     for key ,value in results.items():
         if (value > -1):
-            update.message.reply_text('You just said the keywords '+key+' !')
+            update.message.reply_text('You just said the keywords '+key.upper()+' !')
             print(key)
             try:
-                mongoDB.increaseLog(key)
+                mongoDB.increaseLog(key,id)
                 # redis1.incr(key)
                 # update.message.reply_text()
                 # print('You have said ' + key +  ' for ' + redis1.get(key).decode('UTF-8') + ' times.')
             except (IndexError, ValueError):
-                update.message.reply_text('Sorry, error in redis connection.')
+                update.message.reply_text('Sorry, error in mongoDB connection.')
 
     
 
 def showStatistic(update: Update, context: CallbackContext)-> None:
+    msg = str(update)
+    start = msg.find("'id': ") 
+    end = msg.find(',', start)
+    id = msg[start + 6:end].strip()
+    print(id)
     if(len(context.args)==0):
         replyMsg = "This function allows you to query the number of times keywords in each programming language have been mentioned in past chats.\nTry:\n/statistic all\n/statistic python\n/statistic javascript"
         update.message.reply_text(replyMsg)
@@ -221,7 +238,7 @@ def showStatistic(update: Update, context: CallbackContext)-> None:
                 #     print(key)
                 try:
                     # value = redis1.get(key).decode('UTF-8')
-                    value = mongoDB.queryLog(key)
+                    value = mongoDB.queryLog(key,id)
                     print(value)
                     if(int(value) > int(max) ):
                         max = value
@@ -231,7 +248,9 @@ def showStatistic(update: Update, context: CallbackContext)-> None:
                     replyMsg +=  key +  ' for ' + str(value) + ' times;\n'
                     # print()
                 except (IndexError, ValueError):
-                    update.message.reply_text('Sorry, error in redis connection.')
+                    update.message.reply_text('Sorry, error in mongoDB connection.')
+                    # print(IndexError)
+                    # print(ValueError)
             if(max != -1):
                 replyMsg += 'It seems like maybe ' + maxName.upper() +  ' is your favourite language.'
             else:
@@ -243,13 +262,13 @@ def showStatistic(update: Update, context: CallbackContext)-> None:
                 #     print(key)
                 try:
                     # value = redis1.get(key).decode('UTF-8')
-                    value = mongoDB.queryLog(key)
+                    value = mongoDB.queryLog(key,id)
                         # redis1.incr(key)
                         # update.message.reply_text()
                     replyMsg +=  key +  ' for ' + str(value) + ' times.\n'
                     # print()
                 except (IndexError, ValueError):
-                    update.message.reply_text('Sorry, error in redis connection.')
+                    update.message.reply_text('Sorry, error in mongoDB connection.')
         update.message.reply_text(replyMsg)
         # return
 

@@ -17,36 +17,66 @@ class mongoDBconnect():
             print(IndexError)
             print(ValueError)
             return 'Sorry, there are some errors in MongoDB.'
-    def increaseLog(self,name):
+        
+    def increaseLog(self,name,id):
         try:
-            tests = self.connect.find_one({"name":"language"})
+            tests = self.connect.find_one({"name":id+"language"})
             if tests is None:
-                return 'Sorry nothing found. Maybe you can try /GptON.'
+                # return 'Sorry nothing found. Maybe you can try /GptON.'
+                newID = {
+                    "name":id+"language",
+                    "javascript":0,
+                    "python":0,
+                    "java":0,
+                    "c":0,
+                    "c++":0,
+                    "c#":0,
+                    "css":0,
+                    "html":0
+                }
+                self.connect.insert_one(newID)
+                return self.increaseLog(name,id)
             # result = [result[name] for result in tests][0]
             tests[name] = int(tests[name]) + 1
-            result = self.connect.update_one({"name":"language"}, {'$set': tests})
-            return result
-        except (IndexError, ValueError):
-            print(IndexError)
-            print(ValueError)
-            return 'Sorry, there are some errors in MongoDB.'
-    def queryLog(self,name):
-        try:
-            tests = self.connect.find_one({"name":"language"})
-            if tests is None:
-                return 'Sorry nothing found. Maybe you can try /GptON.'
-            result = tests[name]
+            result = self.connect.update_one({"name":id+"language"}, {'$set': tests})
             return result
         except (IndexError, ValueError):
             print(IndexError)
             print(ValueError)
             return 'Sorry, there are some errors in MongoDB.'
         
+    def queryLog(self,name,id):
+        # print(name)
+        # print(id)
+        try:
+            tests = self.connect.find_one({"name":id+"language"})
+            if tests is None:
+                # return 'Sorry nothing found. Maybe you can try /GptON.'
+                newID = {
+                    "name":id+"language",
+                    "javascript":0,
+                    "python":0,
+                    "java":0,
+                    "c":0,
+                    "c++":0,
+                    "c#":0,
+                    "css":0,
+                    "html":0
+                }
+                self.connect.insert_one(newID)
+                return self.queryLog(name,id)
+            result = tests[name]
+            return result
+        except (IndexError, ValueError):
+            # print(IndexError)
+            # print(ValueError)
+            return 'Sorry, there are some errors in MongoDB.'
+        
 # if __name__ == '__main__':
 #     mongoTest = mongoDBconnect()
-#     result = mongoTest.readAlgorithm('binarysearch',"pythonImplementation")
-#     # result = mongoTest.queryLog('javascript')
-#     # result = mongoTest.increaseLog('javascript')
+#     # result = mongoTest.readAlgorithm('binarysearch',"pythonImplementation")
+#     # result = mongoTest.queryLog('javascript','123123123')
+#     # result = mongoTest.increaseLog('javascript','123123123')
 #     # result = mongoTest.queryLog('javascript')
 #     print(result)
 
