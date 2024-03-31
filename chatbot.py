@@ -7,6 +7,7 @@ import logging
 from mongoDB import mongoDBconnect
 from ChatGPT_HKBU import HKBU_ChatGPT
 # import re
+import os
 
 # global redis1
 global mongoDB
@@ -15,9 +16,10 @@ def main():
     # Load your token and create an Updater for your Bot
     global GPTFlag
     GPTFlag = False
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
+#    config = configparser.ConfigParser()
+#    config.read('config.ini')
+#    updater = Updater(token=(config['TELEGRAM']['ACCESS_TOKEN']), use_context=True)
+    updater = Updater(token=(os.environ['ACCESS_TOKEN']), use_context=True)
     dispatcher = updater.dispatcher
     # global redis1
     # redis1 = redis.Redis(host=(config['REDIS']['HOST']), password=(config['REDIS']['PASSWORD']), port=(config['REDIS']['REDISPORT']))
@@ -32,7 +34,8 @@ def main():
 
     # dispatcher for chatgpt
     global chatgpt
-    chatgpt = HKBU_ChatGPT(config)
+#    chatgpt = HKBU_ChatGPT(config)
+    chatgpt = HKBU_ChatGPT()
     # chatgpt_handler = MessageHandler(Filters.text & (~Filters.command), equiped_chatgpt)
     message_handler = MessageHandler(Filters.text & (~Filters.command), keywords)
     dispatcher.add_handler(message_handler)
